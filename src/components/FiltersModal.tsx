@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  TextInput,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { X } from 'lucide-react-native';
@@ -45,6 +46,30 @@ const AMENITIES = [
 
 const BEDROOM_OPTIONS = [1, 2, 3, 4, '5+'];
 
+const AMENITY_CATEGORIES = {
+  'Essential': [
+    'WiFi',
+    'Kitchen',
+    'Air conditioning',
+    'Heating',
+    'Washer',
+  ],
+  'Features': [
+    'Pool',
+    'Hot tub',
+    'Free parking',
+    'EV charger',
+    'Gym',
+  ],
+  'Safety': [
+    'Smoke alarm',
+    'Carbon monoxide alarm',
+    'Fire extinguisher',
+    'First aid kit',
+    'Security cameras',
+  ],
+};
+
 export const FiltersModal: React.FC<FiltersModalProps> = ({
   isVisible,
   onClose,
@@ -58,6 +83,19 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
       amenities: [],
     }
   );
+
+  const [priceRangeLocal, setPriceRangeLocal] = useState({
+    min: filters.priceRange.min,
+    max: filters.priceRange.max,
+  });
+
+  const handlePriceChange = (type: 'min' | 'max', value: string) => {
+    const numValue = parseInt(value) || 0;
+    setPriceRangeLocal(prev => ({
+      ...prev,
+      [type]: numValue,
+    }));
+  };
 
   const handleAmenityToggle = (amenity: string) => {
     setFilters(prev => ({
@@ -74,6 +112,33 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
       bedrooms,
     }));
   };
+
+  const handleApply = () => {
+    setFilters(prev => ({
+      ...prev,
+      priceRange: priceRangeLocal,
+    }));
+    onApply({
+      ...filters,
+      priceRange: priceRangeLocal,
+    });
+  };
+
+  const renderAmenityCategory = (category: string, amenities: string[]) => (
+    <View key={category} style={styles.categorySection}>
+      <Text style={styles.categoryTitle}>{category}</Text>
+      {amenities.map(amenity => (
+        <View key={amenity} style={styles.amenityRow}>
+          <Text style={styles.amenityText}>{amenity}</Text>
+          <Switch
+            value={filters.amenities.includes(amenity)}
+            onValueChange={() => handleAmenityToggle(amenity)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+      ))}
+    </View>
+  );
 
   return (
     <Modal
@@ -97,9 +162,27 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Price Range</Text>
             <View style={styles.priceInputs}>
-              <Text style={styles.priceText}>
-                ${filters.priceRange.min} - ${filters.priceRange.max}
-              </Text>
+              <View style={styles.priceInputContainer}>
+                <Text style={styles.priceLabel}>Minimum</Text>
+                <TextInput
+                  style={styles.priceInput}
+                  value={priceRangeLocal.min.toString()}
+                  onChangeText={(value) => handlePriceChange('min', value)}
+                  keyboardType="numeric"
+                  placeholder="Min price"
+                />
+              </View>
+              <Text style={styles.priceSeparator}>-</Text>
+              <View style={styles.priceInputContainer}>
+                <Text style={styles.priceLabel}>Maximum</Text>
+                <TextInput
+                  style={styles.priceInput}
+                  value={priceRangeLocal.max.toString()}
+                  onChangeText={(value) => handlePriceChange('max', value)}
+                  keyboardType="numeric"
+                  placeholder="Max price"
+                />
+              </View>
             </View>
           </View>
 
@@ -130,21 +213,14 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Amenities</Text>
-            {AMENITIES.map(amenity => (
-              <View key={amenity} style={styles.amenityRow}>
-                <Text style={styles.amenityText}>{amenity}</Text>
-                <Switch
-                  value={filters.amenities.includes(amenity)}
-                  onValueChange={() => handleAmenityToggle(amenity)}
-                  trackColor={{ false: colors.border, true: colors.primary }}
-                />
-              </View>
-            ))}
+            {Object.entries(AMENITY_CATEGORIES).map(([category, amenities]) =>
+              renderAmenityCategory(category, amenities)
+            )}
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button onPress={() => onApply(filters)}>Apply Filters</Button>
+          <Button onPress={handleApply}>Apply Filters</Button>
         </View>
       </View>
     </Modal>
@@ -192,12 +268,31 @@ const styles = StyleSheet.create({
   },
   priceInputs: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: spacing.sm,
   },
-  priceText: {
+  priceInputContainer: {
+    flex: 1,
+  },
+  priceLabel: {
+    ...typography.caption,
+    color: colors.gray,
+    marginBottom: spacing.xs,
+  },
+  priceInput: {
     ...typography.body,
-    color: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    textAlign: 'center',
+  },
+  priceSeparator: {
+    ...typography.body,
+    marginHorizontal: spacing.md,
+    color: colors.gray,
   },
   bedroomOptions: {
     flexDirection: 'row',
@@ -235,5 +330,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+  },
+  categorySection: {
+    marginBottom: spacing.lg,
+  },
+  categoryTitle: {
+    ...typography.h4,
+    marginBottom: spacing.sm,
   },
 }); 
