@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,10 @@ import {
   Dimensions,
   ViewStyle,
   Image,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Heart, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
@@ -31,17 +33,86 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onSave,
   style,
 }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === 0 ? property.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === property.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
   return (
     <Pressable
       style={[styles.container, style]}
       onPress={onPress}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: property.images[0] }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
+          contentOffset={{ x: currentImageIndex * CARD_WIDTH, y: 0 }}
+        >
+          {property.images.map((image, index) => (
+            <View key={index} style={styles.imageWrapper}>
+              <Image
+                source={{ uri: image }}
+                style={styles.image}
+                resizeMode="cover"
+                onLoad={handleImageLoad}
+              />
+              {isLoading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+
+        {property.images.length > 1 && (
+          <>
+            <Pressable
+              style={[styles.imageButton, styles.prevButton]}
+              onPress={handlePrevImage}
+              hitSlop={8}
+            >
+              <ChevronLeft size={24} color={colors.white} />
+            </Pressable>
+            <Pressable
+              style={[styles.imageButton, styles.nextButton]}
+              onPress={handleNextImage}
+              hitSlop={8}
+            >
+              <ChevronRight size={24} color={colors.white} />
+            </Pressable>
+          </>
+        )}
+
+        <View style={styles.pagination}>
+          {property.images.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.paginationDot,
+                index === currentImageIndex && styles.paginationDotActive,
+              ]}
+            />
+          ))}
+        </View>
+
         <Pressable
           style={styles.heartButton}
           onPress={onSave}
@@ -101,9 +172,52 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 12,
     overflow: 'hidden',
   },
+  imageWrapper: {
+    width: CARD_WIDTH,
+    height: IMAGE_HEIGHT,
+  },
   image: {
     width: '100%',
-    height: IMAGE_HEIGHT,
+    height: '100%',
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageButton: {
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateY: -20 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: spacing.xs,
+  },
+  prevButton: {
+    left: spacing.md,
+  },
+  nextButton: {
+    right: spacing.md,
+  },
+  pagination: {
+    position: 'absolute',
+    bottom: spacing.md,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paginationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    marginHorizontal: 2,
+  },
+  paginationDotActive: {
+    backgroundColor: colors.white,
   },
   heartButton: {
     position: 'absolute',
