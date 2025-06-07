@@ -1,0 +1,17 @@
+{
+  "placeholder": {
+    "search": "ابدأ البحث"
+  },
+  "section_popular": "الأكثر شعبية",
+  "section_near_you": "بالقرب منك",
+  "services": {
+    "photography": "التصوير",
+    "chefs": "الطهاة",
+    "meals": "وجبات محضرة"
+  },
+  "tabs": {
+    "homes": "المنازل",
+    "experiences": "التجارب",
+    "services": "الخدمات"
+  }
+} 
