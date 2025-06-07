@@ -3,15 +3,14 @@ export interface Property {
   title: string;
   description: string;
   price: number;
-  rating: number;
-  reviews: number;
-  images: string[];
-  location: string;
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
+  city: string;
   bedrooms: number;
   bathrooms: number;
-  amenities: string[];
+  area: number;
+  latitude: number;
+  longitude: number;
+  images: string[];
+  daysListed: number;
+  has3DTour: boolean;
+  neighborhood: string;
 } 

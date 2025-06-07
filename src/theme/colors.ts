@@ -30,6 +30,7 @@ export const colors = {
     shadow: 'rgba(0, 0, 0, 0.1)',
     input: '#FFFFFF',
     modalBackground: 'rgba(0, 0, 0, 0.6)',
+    buttonText: '#FFFFFF',
   },
   
   // Dark theme
@@ -46,6 +47,7 @@ export const colors = {
     shadow: 'rgba(0, 0, 0, 0.3)',
     input: '#1E293B',
     modalBackground: 'rgba(0, 0, 0, 0.8)',
+    buttonText: '#FFFFFF',
   },
   
   // Special colors

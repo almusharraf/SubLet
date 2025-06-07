@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,6 +11,7 @@ import { CategoryTabs } from '../components/CategoryTabs';
 import { Text } from '../components/Text';
 import { useTheme } from '../theme/useTheme';
 import { RootStackParamList } from '../navigation/types';
+import { mockServices, mockExperiences, mockListings } from '../data/mockData';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -23,14 +24,24 @@ const DEFAULT_IMAGES = {
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { colors } = useTheme();
-  const { services, loading: servicesLoading, error: servicesError } = useServices();
-  const { listings, loading: listingsLoading, error: listingsError } = useListings();
+  const [activeCategory, setActiveCategory] = useState('homes');
+  const { services = mockServices, loading: servicesLoading, error: servicesError } = useServices();
+  const { listings = mockListings, loading: listingsLoading, error: listingsError } = useListings();
+
+  const handleCategoryChange = useCallback((category: string) => {
+    setActiveCategory(category);
+  }, []);
 
   const handleServicePress = (service: any) => {
     navigation.navigate('ServiceDetails', {
       service: {
-        ...service,
+        id: service.id,
+        name: service.name,
+        category: service.category,
+        rating: service.rating,
+        price: service.price,
         imageUrl: service.imageUrl || DEFAULT_IMAGES.service,
+        description: service.description,
       },
     });
   };
@@ -47,6 +58,71 @@ export const HomeScreen: React.FC = () => {
       area: listing.area,
       imageUrl: listing.imageUrl || DEFAULT_IMAGES.property,
     });
+  };
+
+  const renderContent = () => {
+    switch (activeCategory) {
+      case 'services':
+        return (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Available Services</Text>
+            <View style={styles.servicesGrid}>
+              {services.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  name={service.name}
+                  category={service.category}
+                  rating={service.rating}
+                  imageUrl={service.imageUrl || DEFAULT_IMAGES.service}
+                  price={service.price}
+                  onPress={() => handleServicePress(service)}
+                />
+              ))}
+            </View>
+          </View>
+        );
+      case 'experiences':
+        return (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Experiences</Text>
+            <View style={styles.servicesGrid}>
+              {mockExperiences.map((experience) => (
+                <ServiceCard
+                  key={experience.id}
+                  name={experience.name}
+                  category={experience.category}
+                  rating={experience.rating}
+                  imageUrl={experience.imageUrl || DEFAULT_IMAGES.service}
+                  price={experience.price}
+                  onPress={() => handleServicePress(experience)}
+                />
+              ))}
+            </View>
+          </View>
+        );
+      default:
+        return (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Available Properties</Text>
+            <View style={styles.listingsContainer}>
+              {listings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  title={listing.title}
+                  description={listing.description}
+                  price={listing.price}
+                  city={listing.city}
+                  bedrooms={listing.bedrooms}
+                  bathrooms={listing.bathrooms}
+                  area={listing.area}
+                  imageUrl={listing.imageUrl || DEFAULT_IMAGES.property}
+                  onPress={() => handleListingPress(listing)}
+                />
+              ))}
+            </View>
+          </View>
+        );
+    }
   };
 
   if (servicesLoading || listingsLoading) {
@@ -68,44 +144,10 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
       <SearchBar />
-      <CategoryTabs />
-      
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Services</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {services.map((service) => (
-            <ServiceCard
-              key={service.id}
-              name={service.name}
-              category={service.category}
-              rating={service.rating}
-              imageUrl={service.imageUrl || DEFAULT_IMAGES.service}
-              price={service.price}
-              onPress={() => handleServicePress(service)}
-            />
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Latest Listings</Text>
-        {listings.map((listing) => (
-          <ListingCard
-            key={listing.id}
-            title={listing.title}
-            description={listing.description}
-            price={listing.price}
-            city={listing.city}
-            bedrooms={listing.bedrooms}
-            bathrooms={listing.bathrooms}
-            area={listing.area}
-            imageUrl={listing.imageUrl || DEFAULT_IMAGES.property}
-            onPress={() => handleListingPress(listing)}
-          />
-        ))}
-      </View>
+      <CategoryTabs onCategoryChange={handleCategoryChange} />
+      {renderContent()}
     </ScrollView>
   );
 };
@@ -135,5 +177,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  servicesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  listingsContainer: {
+    gap: 16,
   },
 });

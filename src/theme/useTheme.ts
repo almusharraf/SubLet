@@ -2,9 +2,34 @@ import { useContext } from 'react';
 import { useColorScheme } from 'react-native';
 import { ThemeContext } from './ThemeContext';
 import { lightTheme, darkTheme, Theme } from './theme';
+import { colors } from './colors';
+
+interface ThemeColors {
+  background: string;
+  surface: string;
+  card: string;
+  text: string;
+  textSecondary: string;
+  textTertiary: string;
+  border: string;
+  divider: string;
+  placeholder: string;
+  icon: string;
+  shadow: string;
+  input: string;
+  modalBackground: string;
+  buttonText: string;
+  primary: string;
+  error: string;
+  primaryDark: string;
+  primaryLight: string;
+  warning: string;
+  chatBubble: string;
+  chatBubbleUser: string;
+}
 
 // Ensure all required theme colors are present
-const fallbackColors: Theme = {
+const fallbackColors: ThemeColors = {
   background: '#FFFFFF',
   surface: '#F7F7F7',
   card: '#FFFFFF',
@@ -27,6 +52,7 @@ const fallbackColors: Theme = {
   shadow: 'rgba(0, 0, 0, 0.1)',
   chatBubble: '#F0F0F0',
   chatBubbleUser: '#1C9BEF',
+  buttonText: '#FFFFFF',
 };
 
 // Default theme values as a safe fallback
@@ -40,6 +66,7 @@ const defaultThemeValues = {
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   if (!context) {
     console.warn('useTheme must be used within ThemeProvider');
@@ -48,7 +75,11 @@ export const useTheme = () => {
       ...defaultThemeValues,
       theme: colorScheme || 'light',
       isDark: colorScheme === 'dark',
-      colors: colorScheme === 'dark' ? darkTheme : lightTheme,
+      colors: {
+        ...colors[isDark ? 'dark' : 'light'],
+        primary: colors.primary,
+        error: colors.error,
+      } as ThemeColors,
     };
   }
 
@@ -56,7 +87,7 @@ export const useTheme = () => {
   const colors = {
     ...fallbackColors,
     ...(context.isDark ? darkTheme : lightTheme),
-  };
+  } as ThemeColors;
 
   return {
     ...context,
@@ -66,7 +97,7 @@ export const useTheme = () => {
 
 // Helper to safely access theme colors with fallbacks
 export const useThemeColor = (
-  colorKey: keyof Theme,
+  colorKey: keyof ThemeColors,
   fallback?: string
 ): string => {
   const { colors } = useTheme();
@@ -75,14 +106,14 @@ export const useThemeColor = (
 
 // Helper to get style objects with safe color access
 export const useThemedStyles = (
-  styleGenerator: (colors: Theme) => Record<string, any>
+  styleGenerator: (colors: ThemeColors) => Record<string, any>
 ) => {
   const { colors } = useTheme();
   return styleGenerator(colors);
 };
 
 // Utility to safely get a theme color with fallback
-export const getSafeThemeColor = (colors: Theme | undefined, key: keyof Theme): string => {
+export const getSafeThemeColor = (colors: ThemeColors | undefined, key: keyof ThemeColors): string => {
   if (!colors) {
     console.warn(`Theme colors undefined when accessing ${key}`);
     return fallbackColors[key];
