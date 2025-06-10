@@ -1,0 +1,17 @@
+{
+  "placeholder": {
+    "search": "Start your search"
+  },
+  "section_popular": "Popular",
+  "section_near_you": "Near you",
+  "services": {
+    "photography": "Photography",
+    "chefs": "Chefs",
+    "meals": "Prepared meals"
+  },
+  "tabs": {
+    "homes": "Homes",
+    "experiences": "Experiences",
+    "services": "Services"
+  }
+} 
